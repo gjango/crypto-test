@@ -133,7 +133,7 @@ export interface IConfiguration extends Document {
   // Methods
   activate(): Promise<boolean>;
   deactivate(): Promise<boolean>;
-  validate(): { valid: boolean; errors: string[] };
+  validateConfig(): { valid: boolean; errors: string[] };
   clone(newName: string, newVersion: string): Promise<IConfiguration>;
   diff(other: IConfiguration): Map<string, any>;
 }
@@ -469,7 +469,7 @@ configurationSchema.index({ createdAt: -1 });
 // Ensure only one active configuration
 configurationSchema.pre('save', async function(next) {
   if (this.isActive && this.isModified('isActive')) {
-    await this.constructor.updateMany(
+    await (this.constructor as any).updateMany(
       { _id: { $ne: this._id }, isActive: true },
       { isActive: false, deactivatedAt: new Date() }
     );
@@ -478,14 +478,14 @@ configurationSchema.pre('save', async function(next) {
   
   // Ensure only one default configuration
   if (this.isDefault && this.isModified('isDefault')) {
-    await this.constructor.updateMany(
+    await (this.constructor as any).updateMany(
       { _id: { $ne: this._id }, isDefault: true },
       { isDefault: false }
     );
   }
   
   // Validate configuration
-  const validation = this.validate();
+  const validation = this.validateConfig();
   this.isValid = validation.valid;
   this.validationErrors = validation.errors;
   
@@ -510,7 +510,7 @@ configurationSchema.methods.deactivate = async function(): Promise<boolean> {
   return true;
 };
 
-configurationSchema.methods.validate = function(): { valid: boolean; errors: string[] } {
+configurationSchema.methods.validateConfig = function(): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   // Validate leverage settings

@@ -26,6 +26,15 @@ export class MatchingEngineService extends EventEmitter {
   private takerFeeRate: number = 0.0004; // 0.04%
   private minTickSize: Map<string, number> = new Map(); // symbol -> tick size
   private minStepSize: Map<string, number> = new Map(); // symbol -> step size
+  private orderBooks: Map<string, any> = new Map();
+  private pausedMarkets: Set<string> = new Set();
+  private orderQueue: IOrder[] = [];
+  private executionQueue: any[] = [];
+  private tickRate: number = 100;
+  private processingInterval: NodeJS.Timeout | null = null;
+  private ordersProcessed: number = 0;
+  private tradesExecuted: number = 0;
+  private averageMatchingTime: number = 0;
   
   private constructor() {
     super();
@@ -573,7 +582,7 @@ export class MatchingEngineService extends EventEmitter {
    */
   async cancelOrder(orderId: string, userId: string, reason?: string): Promise<boolean> {
     try {
-      const order = await Order.findOne({ orderId, userId }).lean() as IOrder | null;
+      const order = await Order.findOne({ orderId, userId }).lean() as unknown as IOrder | null;
       
       if (!order) {
         logger.warn(`Order ${orderId} not found for user ${userId}`);
@@ -620,7 +629,7 @@ export class MatchingEngineService extends EventEmitter {
         filter.symbol = symbol;
       }
       
-      const orders = await Order.find(filter).lean() as IOrder[];
+      const orders = await Order.find(filter).lean() as unknown as IOrder[];
       
       let cancelledCount = 0;
       for (const order of orders) {
@@ -633,6 +642,148 @@ export class MatchingEngineService extends EventEmitter {
     } catch (error) {
       logger.error(`Error cancelling all orders for user ${userId}`, error);
       return 0;
+    }
+  }
+  
+  /**
+   * Add market to tracking
+   */
+  addMarket(symbol: string): void {
+    if (!this.orderBooks.has(symbol)) {
+      this.orderBooks.set(symbol, {
+        symbol,
+        bids: [],
+        asks: [],
+        lastUpdate: new Date(),
+      });
+      logger.info(`Added market to matching engine: ${symbol}`);
+    }
+  }
+  
+  /**
+   * Pause market
+   */
+  pauseMarket(symbol: string): void {
+    this.pausedMarkets.add(symbol);
+    logger.warn(`Market paused: ${symbol}`);
+  }
+  
+  /**
+   * Resume market
+   */
+  resumeMarket(symbol: string): void {
+    this.pausedMarkets.delete(symbol);
+    logger.info(`Market resumed: ${symbol}`);
+  }
+  
+  /**
+   * Pause all markets
+   */
+  pauseAllMarkets(): void {
+    this.orderBooks.forEach((_, symbol) => {
+      this.pausedMarkets.add(symbol);
+    });
+    logger.warn('All markets paused');
+  }
+  
+  /**
+   * Resume all markets
+   */
+  resumeAllMarkets(): void {
+    this.pausedMarkets.clear();
+    logger.info('All markets resumed');
+  }
+  
+  /**
+   * Clear all order books
+   */
+  clearAllOrderBooks(): void {
+    this.orderBooks.forEach(orderBook => {
+      orderBook.bids = [];
+      orderBook.asks = [];
+      orderBook.lastUpdate = new Date();
+    });
+    logger.warn('All order books cleared');
+  }
+  
+  /**
+   * Set tick rate
+   */
+  setTickRate(rate: number): void {
+    this.tickRate = rate;
+    
+    // Restart processing with new rate
+    if (this.processingInterval) {
+      clearInterval(this.processingInterval);
+      this.processingInterval = setInterval(() => {
+        this.processBatch();
+      }, this.tickRate);
+    }
+    
+    logger.info(`Tick rate set to ${rate}ms`);
+  }
+  
+  /**
+   * Restart matching engine
+   */
+  restart(): void {
+    logger.info('Restarting matching engine');
+    
+    // Stop processing
+    if (this.processingInterval) {
+      clearInterval(this.processingInterval);
+    }
+    
+    // Clear queues
+    this.orderQueue.clear();
+    this.executionQueue = [];
+    
+    // Restart processing
+    this.startProcessing();
+    
+    logger.info('Matching engine restarted');
+  }
+  
+  /**
+   * Get metrics
+   */
+  getMetrics(): any {
+    const totalOrders = Array.from(this.orderBooks.values()).reduce((sum, book) => {
+      return sum + book.bids.length + book.asks.length;
+    }, 0);
+    
+    return {
+      ordersProcessed: this.ordersProcessed,
+      tradesExecuted: this.tradesExecuted,
+      averageLatency: this.averageMatchingTime,
+      systemLoad: (totalOrders / 10000) * 100, // Assume 10k orders is 100% load
+      orderBookDepth: totalOrders,
+      pausedMarkets: Array.from(this.pausedMarkets),
+    };
+  }
+
+  /**
+   * Start order processing
+   */
+  private startProcessing(): void {
+    if (!this.processingInterval) {
+      this.processingInterval = setInterval(() => {
+        this.processBatch();
+      }, this.tickRate);
+    }
+  }
+
+  /**
+   * Process a batch of orders
+   */
+  private async processBatch(): Promise<void> {
+    // Process orders from queue
+    while (this.orderQueue.length > 0) {
+      const order = this.orderQueue.shift();
+      if (order) {
+        // Process order logic here
+        this.ordersProcessed++;
+      }
     }
   }
 }

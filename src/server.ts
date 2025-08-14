@@ -1,5 +1,4 @@
 import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
 import createApp from './app';
 import { config } from './config/environment';
 import { connectDatabase } from './config/database';
@@ -9,6 +8,7 @@ import {
   handleUnhandledRejections, 
   gracefulShutdown 
 } from './middleware/errorHandler';
+import WebSocketServer from './websocket/WebSocketServer';
 
 const logger = createLogger('Server');
 
@@ -23,25 +23,12 @@ const startServer = async (): Promise<void> => {
     const app = createApp();
     const server = createServer(app);
 
-    const io = new SocketIOServer(server, {
-      cors: {
-        origin: config.security.corsOrigin.split(',').map(o => o.trim()),
-        credentials: true,
-      },
-      transports: ['websocket', 'polling'],
-      pingTimeout: config.websocket.heartbeatInterval,
-      pingInterval: config.websocket.heartbeatInterval / 2,
-    });
-
-    io.on('connection', (socket) => {
-      logger.info(`WebSocket client connected: ${socket.id}`);
-      
-      socket.on('disconnect', (reason) => {
-        logger.info(`WebSocket client disconnected: ${socket.id}, reason: ${reason}`);
-      });
-    });
-
-    (global as any).io = io;
+    // Initialize WebSocket server
+    const wsServer = WebSocketServer.getInstance();
+    await wsServer.initialize(server);
+    
+    // Make WebSocket server globally accessible
+    (global as any).wsServer = wsServer;
 
     server.listen(config.port, () => {
       logger.info(`

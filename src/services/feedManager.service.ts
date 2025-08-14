@@ -39,6 +39,7 @@ export class FeedManagerService extends EventEmitter {
   private isRunning: boolean = false;
   private processInterval: NodeJS.Timeout | null = null;
   private candleGenerators: Map<string, NodeJS.Timeout> = new Map();
+  private status: FeedStatus = FeedStatus.DISCONNECTED;
   
   // Configuration
   private outlierThreshold: number = 0.5; // 50% price change
@@ -48,6 +49,15 @@ export class FeedManagerService extends EventEmitter {
   
   // Statistics
   private ticksProcessed: number = 0;
+  
+  // Simulation controls
+  private simulationMode: boolean = false;
+  private simulatedOutage: boolean = false;
+  private simulatedLatency: number = 0;
+  private simulatedCorruption: boolean = false;
+  private spreadOverride: Map<string, number> = new Map();
+  private volatilityMultiplier: number = 1;
+  private errorCount: number = 0;
   private ticksFiltered: number = 0;
   private lastHealthCheck: Date = new Date();
   
@@ -550,6 +560,131 @@ export class FeedManagerService extends EventEmitter {
         status: feed.getStatus ? feed.getStatus() : 'unknown',
       })),
     };
+  }
+  
+  /**
+   * Inject price change (for testing)
+   */
+  injectPrice(symbol: string, change: number, type: 'absolute' | 'relative' = 'relative'): void {
+    const symbolPrice = this.symbolPrices.get(symbol);
+    if (!symbolPrice) return;
+    
+    let newPrice = symbolPrice.markPrice;
+    
+    if (type === 'relative') {
+      newPrice = newPrice * (1 + change / 100);
+    } else {
+      newPrice = newPrice + change;
+    }
+    
+    // Create synthetic price tick
+    const tick: IPriceTick = {
+      symbol,
+      price: newPrice,
+      bid: newPrice * 0.9995,
+      ask: newPrice * 1.0005,
+      volume24h: 1000000,
+      timestamp: new Date(),
+      source: FeedSource.SIMULATED,
+    };
+    
+    // Update symbol price
+    symbolPrice.prices.set(FeedSource.SIMULATED, tick);
+    symbolPrice.markPrice = newPrice;
+    symbolPrice.lastUpdate = new Date();
+    
+    // Emit price update
+    this.emit('price_update', {
+      symbol,
+      price: newPrice,
+      bid: tick.bid,
+      ask: tick.ask,
+      volume24h: tick.volume24h,
+      timestamp: tick.timestamp,
+      source: FeedSource.SIMULATED,
+    });
+    
+    logger.info(`Injected price for ${symbol}: ${newPrice} (${type} change: ${change})`);
+  }
+  
+  /**
+   * Set spread for symbol
+   */
+  setSpread(symbol: string, spread: number): void {
+    this.spreadOverride.set(symbol, spread);
+    logger.info(`Set spread for ${symbol}: ${spread * 100}%`);
+  }
+  
+  /**
+   * Set volatility multiplier
+   */
+  setVolatility(multiplier: number): void {
+    this.volatilityMultiplier = multiplier;
+    logger.info(`Set volatility multiplier: ${multiplier}x`);
+  }
+  
+  /**
+   * Simulate feed outage
+   */
+  simulateOutage(enabled: boolean): void {
+    this.simulatedOutage = enabled;
+    
+    if (enabled) {
+      logger.warn('Simulating feed outage');
+      this.status = FeedStatus.ERROR;
+      
+      // Mark all feeds as disconnected
+      this.feeds.forEach((feed, source) => {
+        this.emit('feed_error', {
+          source,
+          error: 'Simulated outage',
+          timestamp: new Date(),
+        });
+      });
+    } else {
+      logger.info('Feed outage simulation ended');
+      this.status = FeedStatus.CONNECTED;
+    }
+  }
+  
+  /**
+   * Set simulated latency
+   */
+  setLatency(latency: number): void {
+    this.simulatedLatency = latency;
+    logger.info(`Set simulated latency: ${latency}ms`);
+  }
+  
+  /**
+   * Simulate data corruption
+   */
+  simulateCorruption(enabled: boolean): void {
+    this.simulatedCorruption = enabled;
+    logger.info(`Data corruption simulation: ${enabled ? 'enabled' : 'disabled'}`);
+  }
+  
+  /**
+   * Get error count
+   */
+  getErrorCount(): number {
+    return this.errorCount;
+  }
+  
+  /**
+   * Add symbol to tracking
+   */
+  addSymbol(symbol: string): void {
+    if (!this.symbolPrices.has(symbol)) {
+      this.symbolPrices.set(symbol, {
+        symbol,
+        prices: new Map(),
+        lastUpdate: new Date(),
+        primarySource: FeedSource.SIMULATED,
+        markPrice: 0,
+      });
+      
+      logger.info(`Added symbol to tracking: ${symbol}`);
+    }
   }
   
   /**

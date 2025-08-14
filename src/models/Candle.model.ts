@@ -243,7 +243,7 @@ candleSchema.virtual('priceRange').get(function() {
 // Virtual for body to range ratio (indicates volatility)
 candleSchema.virtual('bodyRatio').get(function() {
   const bodySize = parseFloat(this.getBodySize().toString());
-  const range = this.priceRange;
+  const range = (this as any).priceRange;
   
   if (range === 0) return 0;
   

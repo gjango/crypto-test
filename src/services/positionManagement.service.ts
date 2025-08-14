@@ -50,7 +50,7 @@ export class PositionManagementService extends EventEmitter {
     try {
       const positions = await Position.find({ 
         status: { $in: [PositionStatus.OPEN, PositionStatus.CLOSING] } 
-      }).lean() as IPosition[];
+      }).lean() as unknown as IPosition[];
       
       for (const position of positions) {
         this.positions.set(position.positionId, position);
@@ -311,7 +311,8 @@ export class PositionManagementService extends EventEmitter {
       
       // Check available balance
       const wallet = await Wallet.findOne({ userId }).session(session).lean();
-      const availableBalance = wallet?.balances.find(b => b.asset === 'USDT')?.available || 0;
+      const usdtBalance = wallet?.balances.get('USDT');
+      const availableBalance = usdtBalance ? parseFloat(usdtBalance.available.toString()) : 0;
       
       if (availableBalance < amount) {
         await session.abortTransaction();
@@ -519,7 +520,8 @@ export class PositionManagementService extends EventEmitter {
       // Check if user has sufficient balance for margin increase
       if (adjustment.marginDelta > 0) {
         const wallet = await Wallet.findOne({ userId }).session(session).lean();
-        const availableBalance = wallet?.balances.find(b => b.asset === 'USDT')?.available || 0;
+        const usdtBalance = wallet?.balances.get('USDT');
+      const availableBalance = usdtBalance ? parseFloat(usdtBalance.available.toString()) : 0;
         
         if (availableBalance < adjustment.marginDelta) {
           await session.abortTransaction();
@@ -608,7 +610,8 @@ export class PositionManagementService extends EventEmitter {
       
       // Get account equity
       const wallet = await Wallet.findOne({ userId }).session(session).lean();
-      const accountEquity = wallet?.balances.find(b => b.asset === 'USDT')?.total || 0;
+      const usdtBalance = wallet?.balances.get('USDT');
+      const accountEquity = usdtBalance ? parseFloat(usdtBalance.total.toString()) : 0;
       
       const canSwitch = marginCalculationService.canSwitchMarginMode(position, newMode, accountEquity);
       

@@ -120,7 +120,6 @@ const priceTickSchema = new Schema<IPriceTick>(
     timestamp: {
       type: Date,
       default: Date.now,
-      index: true,
     },
     sequence: Number,
     isStale: {

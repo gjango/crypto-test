@@ -160,7 +160,7 @@ export class OrderValidationService {
    */
   private async validateUser(userId: string): Promise<any> {
     const user = await User.findById(userId).lean();
-    return user && user.status === 'active' ? user : null;
+    return user && (user as any).isActive ? user : null;
   }
   
   /**
@@ -301,7 +301,8 @@ export class OrderValidationService {
         requiredBalance = requiredBalance / orderRequest.leverage;
       }
       
-      const availableBalance = wallet.balances.find(b => b.asset === 'USDT')?.available || 0;
+      const usdtBalance = wallet.balances.get('USDT');
+      const availableBalance = usdtBalance ? parseFloat(usdtBalance.available.toString()) : 0;
       
       return {
         sufficient: availableBalance >= requiredBalance,
@@ -313,7 +314,8 @@ export class OrderValidationService {
       const baseAsset = market.baseAsset;
       requiredBalance = orderRequest.quantity;
       
-      const availableBalance = wallet.balances.find(b => b.asset === baseAsset)?.available || 0;
+      const assetBalance = wallet.balances.get(baseAsset);
+      const availableBalance = assetBalance ? parseFloat(assetBalance.available.toString()) : 0;
       
       return {
         sufficient: availableBalance >= requiredBalance,
@@ -387,7 +389,7 @@ export class OrderValidationService {
     }
     
     // Check quantity doesn't exceed position size
-    if (orderRequest.quantity > position.quantity) {
+    if (orderRequest.quantity > parseFloat(position.quantity.toString())) {
       errors.push(`Reduce-only quantity ${orderRequest.quantity} exceeds position size ${position.quantity}`);
     }
   }

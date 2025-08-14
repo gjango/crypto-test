@@ -180,7 +180,6 @@ const adminActionSchema = new Schema<IAdminAction>(
     timestamp: {
       type: Date,
       default: Date.now,
-      index: true,
     },
     executedAt: Date,
     reversedAt: Date,

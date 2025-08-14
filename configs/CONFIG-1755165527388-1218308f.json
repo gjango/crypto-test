@@ -1,0 +1,49 @@
+{
+  "configId": "CONFIG-1755165527388-1218308f",
+  "version": "1.0.1",
+  "name": "Default Configuration",
+  "description": "System default configuration",
+  "markets": [],
+  "engine": {
+    "status": "running",
+    "globalTradingEnabled": true,
+    "matchingEngineParams": {
+      "tickRate": 100,
+      "batchSize": 100,
+      "maxOrdersPerTick": 1000,
+      "priorityQueue": true
+    },
+    "orderLimits": {
+      "maxOpenOrdersPerUser": 200,
+      "maxOrdersPerMinute": 60,
+      "maxOrderValue": 1000000
+    },
+    "performanceParams": {
+      "cacheEnabled": true,
+      "cacheTTL": 60000,
+      "asyncProcessing": true,
+      "workerThreads": 4
+    }
+  },
+  "risk": {
+    "global": {
+      "maxTotalExposure": 100000000,
+      "maxUserExposure": 10000000,
+      "maxSymbolExposure": 50000000,
+      "maintenanceMarginRate": 0.05,
+      "liquidationFeeRate": 0.005,
+      "insuranceFundTarget": 1000000
+    },
+    "perSymbol": {},
+    "leverageTiers": {},
+    "positionLimits": {
+      "maxPositionsPerUser": 50,
+      "maxPositionsPerSymbol": 1000,
+      "concentrationLimit": 0.3
+    }
+  },
+  "active": true,
+  "createdBy": "SYSTEM",
+  "createdAt": "2025-08-14T09:58:47.388Z",
+  "activatedAt": "2025-08-14T09:58:47.388Z"
+}

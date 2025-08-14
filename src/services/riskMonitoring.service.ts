@@ -188,7 +188,7 @@ export class RiskMonitoringService extends EventEmitter {
     const filter: any = { status: PositionStatus.OPEN };
     if (userId) filter.userId = userId;
     
-    const positions = await Position.find(filter).lean() as IPosition[];
+    const positions = await Position.find(filter).lean() as unknown as IPosition[];
     
     let totalExposure = 0;
     let totalMargin = 0;
@@ -248,7 +248,8 @@ export class RiskMonitoringService extends EventEmitter {
     
     if (userId) {
       const wallet = await Wallet.findOne({ userId }).lean();
-      walletBalance = wallet?.balances.find(b => b.asset === 'USDT')?.total || 0;
+      const usdtBalance = wallet?.balances.get('USDT');
+      walletBalance = usdtBalance ? parseFloat(usdtBalance.total.toString()) : 0;
       accountEquity = walletBalance + totalUnrealizedPnl;
       availableBalance = Math.max(0, walletBalance - totalMargin);
     }
@@ -343,7 +344,7 @@ export class RiskMonitoringService extends EventEmitter {
   private async checkLargePositions(): Promise<void> {
     const positions = await Position.find({
       status: PositionStatus.OPEN,
-    }).lean() as IPosition[];
+    }).lean() as unknown as IPosition[];
     
     for (const position of positions) {
       const notional = position.quantity * position.markPrice;
@@ -370,7 +371,7 @@ export class RiskMonitoringService extends EventEmitter {
     const positions = await Position.find({
       status: PositionStatus.OPEN,
       leverage: { $gt: this.HIGH_LEVERAGE_THRESHOLD },
-    }).lean() as IPosition[];
+    }).lean() as unknown as IPosition[];
     
     for (const position of positions) {
       const alertKey = `high_leverage_${position.positionId}`;
@@ -396,7 +397,7 @@ export class RiskMonitoringService extends EventEmitter {
     
     const positions = await Position.find({
       status: PositionStatus.OPEN,
-    }).lean() as IPosition[];
+    }).lean() as unknown as IPosition[];
     
     for (const position of positions) {
       const notional = position.quantity * position.markPrice;
@@ -528,7 +529,7 @@ export class RiskMonitoringService extends EventEmitter {
     try {
       const positions = await Position.find({
         status: PositionStatus.OPEN,
-      }).lean() as IPosition[];
+      }).lean() as unknown as IPosition[];
       
       let liquidations = 0;
       let totalLoss = 0;

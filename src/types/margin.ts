@@ -204,6 +204,26 @@ export interface ILiquidationQueue {
   processing: boolean;
 }
 
+export interface ILiquidationHistory {
+  liquidationId: string;
+  positionId: string;
+  userId: string;
+  symbol: string;
+  side: 'LONG' | 'SHORT';
+  quantity: number;
+  entryPrice: number;
+  liquidationPrice: number;
+  margin: number;
+  loss: number;
+  fee: number;
+  insuranceFundContribution?: number;
+  liquidationType: 'FULL' | 'PARTIAL' | 'AUTO_DELEVERAGE';
+  trigger: 'MARGIN_CALL' | 'MAINTENANCE' | 'FORCED' | 'AUTO_DELEVERAGE';
+  liquidatedBy: 'SYSTEM' | 'ADMIN';
+  timestamp: Date;
+  metadata?: any;
+}
+
 export interface IRiskAlert {
   alertId: string;
   type: 'LARGE_POSITION' | 'HIGH_LEVERAGE' | 'MARGIN_CALL' | 'LIQUIDATION_RISK' | 'UNUSUAL_ACTIVITY';

@@ -1,0 +1,55 @@
+import mongoose, { Schema, Document } from 'mongoose';
+import { IPositionHistory } from '../types/margin';
+
+export interface IPositionHistoryDocument extends IPositionHistory, Document {}
+
+const PositionHistorySchema = new Schema<IPositionHistoryDocument>({
+  positionId: {
+    type: String,
+    required: true,
+    index: true,
+  },
+  action: {
+    type: String,
+    required: true,
+    enum: ['OPEN', 'CLOSE', 'INCREASE', 'DECREASE', 'MARGIN_ADD', 'MARGIN_REMOVE', 'LEVERAGE_CHANGE', 'LIQUIDATION'],
+  },
+  quantity: {
+    type: Schema.Types.Decimal128 as any,
+    required: true,
+    get: (v: any) => parseFloat(v?.toString() || '0'),
+    set: (v: number) => v?.toString(),
+  },
+  price: {
+    type: Schema.Types.Decimal128 as any,
+    required: true,
+    get: (v: any) => parseFloat(v?.toString() || '0'),
+    set: (v: number) => v?.toString(),
+  },
+  margin: {
+    type: Schema.Types.Decimal128 as any,
+    get: (v: any) => parseFloat(v?.toString() || '0'),
+    set: (v: number) => v?.toString(),
+  },
+  pnl: {
+    type: Schema.Types.Decimal128 as any,
+    get: (v: any) => parseFloat(v?.toString() || '0'),
+    set: (v: number) => v?.toString(),
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+}, {
+  timestamps: false,
+  toJSON: { getters: true },
+  toObject: { getters: true },
+});
+
+// Compound index for efficient queries
+PositionHistorySchema.index({ positionId: 1, timestamp: -1 });
+
+// TTL index to automatically delete old history after 30 days
+PositionHistorySchema.index({ timestamp: 1 }, { expireAfterSeconds: 2592000 });
+
+export const PositionHistory = mongoose.model<IPositionHistoryDocument>('PositionHistory', PositionHistorySchema);

@@ -129,7 +129,7 @@ export class LiquidationEngineService extends EventEmitter {
       // Get all open positions
       const positions = await Position.find({ 
         status: PositionStatus.OPEN 
-      }).lean() as IPosition[];
+      }).lean() as unknown as IPosition[];
       
       for (const position of positions) {
         // Skip if already in queue or being processed
@@ -221,7 +221,7 @@ export class LiquidationEngineService extends EventEmitter {
       // Get latest position data
       const currentPosition = await Position.findOne({ 
         positionId: position.positionId 
-      }).session(session).lean() as IPosition | null;
+      }).session(session).lean() as unknown as IPosition | null;
       
       if (!currentPosition || currentPosition.status !== PositionStatus.OPEN) {
         await session.abortTransaction();
@@ -519,7 +519,7 @@ export class LiquidationEngineService extends EventEmitter {
    */
   async forceLiquidate(positionId: string): Promise<ILiquidationEvent | null> {
     try {
-      const position = await Position.findOne({ positionId }).lean() as IPosition | null;
+      const position = await Position.findOne({ positionId }).lean() as unknown as IPosition | null;
       
       if (!position || position.status !== PositionStatus.OPEN) {
         throw new Error('Position not found or not open');

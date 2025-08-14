@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "allowJs": false,
     "noEmit": false,
+    "noEmitOnError": false,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

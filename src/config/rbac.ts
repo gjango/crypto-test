@@ -2,62 +2,9 @@ import { UserRole } from '../types/enums';
 import { Permission, IRolePermissions } from '../types/auth';
 
 export const rolePermissions: IRolePermissions = {
-  [UserRole.SUPER_ADMIN]: [
-    // All permissions
-    ...Object.values(Permission),
-  ],
-  
   [UserRole.ADMIN]: [
-    // Markets
-    Permission.MARKETS_READ,
-    Permission.MARKETS_WRITE,
-    Permission.MARKETS_SUSPEND,
-    
-    // Orders
-    Permission.ORDERS_CREATE,
-    Permission.ORDERS_CANCEL,
-    Permission.ORDERS_MODIFY,
-    Permission.ORDERS_VIEW_ALL,
-    Permission.ORDERS_CANCEL_ALL,
-    
-    // Positions
-    Permission.POSITIONS_VIEW,
-    Permission.POSITIONS_CLOSE,
-    Permission.POSITIONS_LIQUIDATE,
-    Permission.POSITIONS_VIEW_ALL,
-    Permission.POSITIONS_MODIFY_MARGIN,
-    
-    // Wallets
-    Permission.WALLETS_VIEW,
-    Permission.WALLETS_TRANSFER,
-    Permission.WALLETS_FREEZE,
-    Permission.WALLETS_VIEW_ALL,
-    
-    // Trading
-    Permission.TRADING_SPOT,
-    Permission.TRADING_MARGIN,
-    Permission.TRADING_FUTURES,
-    Permission.TRADING_HALT,
-    Permission.TRADING_RESUME,
-    
-    // Admin
-    Permission.ADMIN_RISK,
-    Permission.ADMIN_REPORTS,
-    Permission.ADMIN_AUDIT,
-    
-    // Users
-    Permission.USERS_MANAGE,
-    Permission.USERS_KYC,
-    Permission.USERS_SUSPEND,
-    
-    // System
-    Permission.SYSTEM_MONITORING,
-    Permission.SYSTEM_LOGS,
-    
-    // API
-    Permission.API_UNLIMITED,
-    Permission.API_WEBSOCKET,
-    Permission.API_TRADING,
+    // All permissions - admins have full access
+    ...Object.values(Permission),
   ],
   
   [UserRole.MARKET_MAKER]: [
@@ -208,8 +155,7 @@ export const hasPermission = (
  * Role hierarchy for inheritance
  */
 export const roleHierarchy: { [key in UserRole]: number } = {
-  [UserRole.SUPER_ADMIN]: 100,
-  [UserRole.ADMIN]: 90,
+  [UserRole.ADMIN]: 100,
   [UserRole.MARKET_MAKER]: 70,
   [UserRole.VIP]: 50,
   [UserRole.TRADER]: 30,

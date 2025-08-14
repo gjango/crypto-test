@@ -1,0 +1,97 @@
+import mongoose, { Schema, Document } from 'mongoose';
+import { IAdminAuditLog } from '../types/admin';
+
+export interface IAdminAuditLogDocument extends Omit<IAdminAuditLog, '_id'>, Document {}
+
+const AdminAuditLogSchema = new Schema<IAdminAuditLogDocument>({
+  actionId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  },
+  action: {
+    type: String,
+    required: true,
+    index: true,
+  },
+  adminId: {
+    type: String,
+    required: true,
+    index: true,
+  },
+  adminEmail: {
+    type: String,
+    required: true,
+  },
+  targetType: {
+    type: String,
+    required: true,
+    enum: ['USER', 'MARKET', 'SYSTEM', 'CONFIG', 'ORDER', 'POSITION'],
+    index: true,
+  },
+  targetId: {
+    type: String,
+    sparse: true,
+    index: true,
+  },
+  before: {
+    type: Schema.Types.Mixed,
+  },
+  after: {
+    type: Schema.Types.Mixed,
+  },
+  changes: {
+    type: Schema.Types.Mixed,
+  },
+  reason: {
+    type: String,
+  },
+  reversible: {
+    type: Boolean,
+    default: false,
+  },
+  reversed: {
+    type: Boolean,
+    default: false,
+  },
+  reversedBy: {
+    type: String,
+  },
+  reversedAt: {
+    type: Date,
+  },
+  ipAddress: {
+    type: String,
+    required: true,
+  },
+  userAgent: {
+    type: String,
+    required: true,
+  },
+  sessionId: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+    index: true,
+  },
+  metadata: {
+    type: Schema.Types.Mixed,
+  },
+}, {
+  timestamps: false,
+});
+
+// Indexes for efficient querying
+AdminAuditLogSchema.index({ timestamp: -1 });
+AdminAuditLogSchema.index({ adminId: 1, timestamp: -1 });
+AdminAuditLogSchema.index({ targetType: 1, targetId: 1, timestamp: -1 });
+AdminAuditLogSchema.index({ action: 1, timestamp: -1 });
+
+// TTL index to automatically delete old logs after 90 days
+AdminAuditLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 7776000 });
+
+export const AdminAuditLog = mongoose.model<IAdminAuditLogDocument>('AdminAuditLog', AdminAuditLogSchema);

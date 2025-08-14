@@ -490,6 +490,13 @@ export class MarginCalculationService {
   getAllLeverageTiers(): Map<string, ILeverageTier[]> {
     return this.leverageTiers;
   }
+  
+  /**
+   * Set leverage tiers for symbol (alias for updateLeverageTiers)
+   */
+  setLeverageTiers(symbol: string, tiers: ILeverageTier[]): void {
+    this.updateLeverageTiers(symbol, tiers);
+  }
 }
 
 export default MarginCalculationService.getInstance();

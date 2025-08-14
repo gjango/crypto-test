@@ -102,7 +102,6 @@ const walletHistorySchema = new Schema<IWalletHistory>(
     timestamp: {
       type: Date,
       default: Date.now,
-      index: true,
     },
   },
   { _id: false }

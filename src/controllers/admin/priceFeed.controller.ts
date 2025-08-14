@@ -8,7 +8,7 @@ import coingeckoFeedService from '../../services/feeds/coingeckoFeed.service';
 import simulatedFeedService from '../../services/feeds/simulatedFeed.service';
 import symbolDiscoveryService from '../../services/symbolDiscovery.service';
 import { FeedSource, IAdminPriceControl } from '../../types/priceFeed';
-import { authMiddleware, authorize } from '../../middleware/auth';
+import { authenticateToken, authorize } from '../../middleware/auth';
 
 const logger = createLogger('AdminPriceFeedController');
 

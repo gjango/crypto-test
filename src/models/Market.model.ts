@@ -335,7 +335,6 @@ const marketSchema = new Schema<IMarket>(
     rank: {
       type: Number,
       default: 999,
-      index: true,
     },
     tags: {
       type: [String],

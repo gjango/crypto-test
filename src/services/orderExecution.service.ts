@@ -167,7 +167,7 @@ export class OrderExecutionService extends EventEmitter {
     
     try {
       // Get order
-      const order = await Order.findOne({ orderId, userId }).session(session).lean() as IOrder | null;
+      const order = await Order.findOne({ orderId, userId }).session(session).lean() as unknown as IOrder | null;
       
       if (!order) {
         await session.abortTransaction();
@@ -665,7 +665,7 @@ export class OrderExecutionService extends EventEmitter {
    * Execute trigger order
    */
   private async executeTriggerOrder(orderId: string): Promise<void> {
-    const order = await Order.findOne({ orderId }).lean() as IOrder | null;
+    const order = await Order.findOne({ orderId }).lean() as unknown as IOrder | null;
     if (!order) return;
     
     logger.info(`Executing triggered order ${orderId}`);

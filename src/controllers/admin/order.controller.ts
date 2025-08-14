@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { createLogger } from '../../utils/logger';
+import { castDocument, castDocuments } from '../../utils/mongooseHelpers';
 import orderExecutionService from '../../services/orderExecution.service';
 import matchingEngineService from '../../services/matchingEngine.service';
 import orderBookService from '../../services/orderBook.service';
@@ -45,7 +46,7 @@ export const forceFillOrder = async (
     }
     
     // Get order
-    const order = await Order.findOne({ orderId }).session(session).lean() as IOrder | null;
+    const order = await Order.findOne({ orderId }).session(session).lean() as unknown as IOrder | null;
     
     if (!order) {
       await session.abortTransaction();
@@ -146,7 +147,7 @@ export const modifyAnyOrder = async (
     const { orderId } = req.params;
     const modifications = req.body;
     
-    const order = await Order.findOne({ orderId }).lean() as IOrder | null;
+    const order = await Order.findOne({ orderId }).lean() as unknown as IOrder | null;
     
     if (!order) {
       res.status(404).json({
@@ -222,7 +223,7 @@ export const cancelAnyOrder = async (
     const { orderId } = req.params;
     const { reason } = req.body;
     
-    const order = await Order.findOne({ orderId }).lean() as IOrder | null;
+    const order = await Order.findOne({ orderId }).lean() as unknown as IOrder | null;
     
     if (!order) {
       res.status(404).json({
@@ -381,7 +382,7 @@ export const replayHistoricalOrders = async (
     const orders = await Order.find(filter)
       .sort({ createdAt: 1 })
       .limit(1000)
-      .lean() as IOrder[];
+      .lean() as unknown as IOrder[];
     
     logger.warn(`Admin starting replay of ${orders.length} historical orders`);
     
@@ -436,7 +437,7 @@ export const bulkCancelOrders = async (
     const orders = await Order.find({
       ...filter,
       status: { $in: [OrderStatus.OPEN, OrderStatus.PARTIALLY_FILLED, OrderStatus.PENDING] },
-    }).lean() as IOrder[];
+    }).lean() as unknown as IOrder[];
     
     let cancelledCount = 0;
     
@@ -503,7 +504,7 @@ export const clearOrderBook = async (
     const orders = await Order.find({
       symbol,
       status: { $in: [OrderStatus.OPEN, OrderStatus.PARTIALLY_FILLED] },
-    }).lean() as IOrder[];
+    }).lean() as unknown as IOrder[];
     
     for (const order of orders) {
       await matchingEngineService.cancelOrder(

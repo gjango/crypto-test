@@ -138,7 +138,6 @@ const tradeSchema = new Schema<ITrade>(
     timestamp: {
       type: Date,
       default: Date.now,
-      index: true,
     },
     blockNumber: Number,
     

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import healthRoutes from './health.routes';
 import authRoutes from './auth.routes';
+import adminRoutes from './admin.routes';
 
 const router = Router();
 
@@ -9,6 +10,9 @@ router.use('/', healthRoutes);
 
 // Authentication routes
 router.use('/auth', authRoutes);
+
+// Admin routes
+router.use('/admin', adminRoutes);
 
 // API root endpoint
 router.get('/', (req, res) => {
@@ -25,6 +29,7 @@ router.get('/', (req, res) => {
       positions: '/api/positions',
       wallets: '/api/wallets',
       trades: '/api/trades',
+      admin: '/api/admin',
     },
   });
 });

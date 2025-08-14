@@ -23,7 +23,7 @@ export const placeOrder = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -87,7 +87,7 @@ export const getOpenOrders = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -120,7 +120,7 @@ export const getOrderHistory = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -158,7 +158,7 @@ export const getOrder = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -198,7 +198,7 @@ export const cancelOrder = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -239,7 +239,7 @@ export const cancelAllOrders = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -250,8 +250,8 @@ export const cancelAllOrders = async (
     
     const symbol = req.query.symbol as string | undefined;
     
-    const { matchingEngineService } = await import('../services/matchingEngine.service');
-    const cancelledCount = await matchingEngineService.default.cancelAllOrders(userId, symbol);
+    const matchingEngineService = (await import('../services/matchingEngine.service')).default;
+    const cancelledCount = await matchingEngineService.cancelAllOrders(userId, symbol);
     
     res.json({
       success: true,
@@ -273,7 +273,7 @@ export const modifyOrder = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -393,7 +393,7 @@ export const getUserTrades = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -448,7 +448,7 @@ export const getOrderStatistics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({
         success: false,

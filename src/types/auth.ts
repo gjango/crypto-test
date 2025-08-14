@@ -103,7 +103,6 @@ export enum Permission {
 }
 
 export interface IRolePermissions {
-  [UserRole.SUPER_ADMIN]: Permission[];
   [UserRole.ADMIN]: Permission[];
   [UserRole.MARKET_MAKER]: Permission[];
   [UserRole.VIP]: Permission[];

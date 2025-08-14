@@ -153,7 +153,7 @@ export const createIndexes = async (): Promise<void> => {
     const Model = mongoose.model(modelName);
     try {
       await Model.createIndexes();
-      console.log(`✅ Indexes created for ${modelName}`);
+      // Indexes created for model
     } catch (error) {
       console.error(`❌ Failed to create indexes for ${modelName}:`, error);
     }
@@ -172,7 +172,7 @@ export const cleanupOldDocuments = async (): Promise<void> => {
   // Clean up old price ticks (keep 1 day)
   const PriceTick = mongoose.model('PriceTick');
   const tickResult = await PriceTick.deleteMany({ timestamp: { $lt: oneDayAgo } });
-  console.log(`Cleaned up ${tickResult.deletedCount} old price ticks`);
+  // Cleaned up old price ticks
   
   // Clean up old 1m candles (keep 1 week)
   const Candle = mongoose.model('Candle');
@@ -180,7 +180,7 @@ export const cleanupOldDocuments = async (): Promise<void> => {
     interval: '1m',
     openTime: { $lt: oneWeekAgo }
   });
-  console.log(`Cleaned up ${candleResult.deletedCount} old 1m candles`);
+  // Cleaned up old 1m candles
   
   // Clean up old admin actions (keep 1 month)
   const AdminAction = mongoose.model('AdminAction');
@@ -188,7 +188,7 @@ export const cleanupOldDocuments = async (): Promise<void> => {
     timestamp: { $lt: oneMonthAgo },
     isActive: false
   });
-  console.log(`Cleaned up ${actionResult.deletedCount} old admin actions`);
+  // Cleaned up old admin actions
 };
 
 /**
@@ -209,7 +209,7 @@ export const getDatabaseStats = async (): Promise<any> => {
   const collections = await db.listCollections().toArray();
   
   for (const collection of collections) {
-    const collStats = await db.collection(collection.name).stats();
+    const collStats = await db.command({ collStats: collection.name });
     stats.collections[collection.name] = {
       count: collStats.count,
       size: collStats.size,

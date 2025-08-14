@@ -4,7 +4,6 @@ export enum UserRole {
   VIP = 'VIP',
   MARKET_MAKER = 'MARKET_MAKER',
   ADMIN = 'ADMIN',
-  SUPER_ADMIN = 'SUPER_ADMIN',
 }
 
 export enum KYCStatus {
