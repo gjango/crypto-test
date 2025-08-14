@@ -41,11 +41,20 @@ const envVarsSchema = joi
     STRICT_VALIDATION: joi.boolean().default(true),
 
     BINANCE_WS_URL: joi.string().default('wss://stream.binance.com:9443/ws'),
+    BINANCE_REST_URL: joi.string().default('https://api.binance.com'),
     COINBASE_WS_URL: joi.string().default('wss://ws-feed.exchange.coinbase.com'),
+    COINBASE_REST_URL: joi.string().default('https://api.exchange.coinbase.com'),
     KRAKEN_WS_URL: joi.string().default('wss://ws.kraken.com'),
+    KRAKEN_REST_URL: joi.string().default('https://api.kraken.com'),
+    COINGECKO_API_URL: joi.string().default('https://api.coingecko.com/api/v3'),
 
     BINANCE_API_KEY: joi.string().optional().allow(''),
     BINANCE_API_SECRET: joi.string().optional().allow(''),
+    COINBASE_API_KEY: joi.string().optional().allow(''),
+    COINBASE_API_SECRET: joi.string().optional().allow(''),
+    COINBASE_PASSPHRASE: joi.string().optional().allow(''),
+    KRAKEN_API_KEY: joi.string().optional().allow(''),
+    KRAKEN_API_SECRET: joi.string().optional().allow(''),
     COINGECKO_API_KEY: joi.string().optional().allow(''),
 
     MAX_LEVERAGE: joi.number().default(20),
@@ -137,16 +146,25 @@ export const config = {
   exchanges: {
     binance: {
       wsUrl: envVars.BINANCE_WS_URL as string,
+      restUrl: envVars.BINANCE_REST_URL as string,
       apiKey: envVars.BINANCE_API_KEY as string | undefined,
       apiSecret: envVars.BINANCE_API_SECRET as string | undefined,
     },
     coinbase: {
       wsUrl: envVars.COINBASE_WS_URL as string,
+      restUrl: envVars.COINBASE_REST_URL as string,
+      apiKey: envVars.COINBASE_API_KEY as string | undefined,
+      apiSecret: envVars.COINBASE_API_SECRET as string | undefined,
+      passphrase: envVars.COINBASE_PASSPHRASE as string | undefined,
     },
     kraken: {
       wsUrl: envVars.KRAKEN_WS_URL as string,
+      restUrl: envVars.KRAKEN_REST_URL as string,
+      apiKey: envVars.KRAKEN_API_KEY as string | undefined,
+      apiSecret: envVars.KRAKEN_API_SECRET as string | undefined,
     },
     coingecko: {
+      apiUrl: envVars.COINGECKO_API_URL as string,
       apiKey: envVars.COINGECKO_API_KEY as string | undefined,
     },
   },
